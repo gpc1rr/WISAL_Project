@@ -1,0 +1,3 @@
+# If Apache DocumentRoot points to backend/ rather than backend/public,
+# deny all requests to this directory. Configure Alias or DocumentRoot to backend/public.
+Require all denied
