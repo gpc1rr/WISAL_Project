@@ -11,6 +11,17 @@ export default defineConfig({
     },
     server: {
         port: 5173,
+        strictPort: true,
         host: true,
+        // في جهازك: نوصّل طلبات /api لسيرفر alwaysdata (نفس فكرة vercel.json)
+        // عشان كوكي تسجيل الدخول يشتغل. حطي في .env.local:
+        // VITE_API_URL=http://localhost:5173
+        proxy: {
+            '/api': {
+                target: 'https://wesal-app.alwaysdata.net',
+                changeOrigin: true,
+                secure: true,
+            },
+        },
     },
 });

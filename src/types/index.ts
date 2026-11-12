@@ -81,6 +81,17 @@ export interface Booking {
   rated?: boolean;
 }
 
+export interface ChatMessage {
+  id: string;
+  bookingId: string;
+  senderId: string;
+  senderName: string;
+  senderRole: UserRole;
+  isMine: boolean;
+  body: string;
+  createdAt: string;
+}
+
 export interface RatingReview {
   id: string;
   bookingId: string;

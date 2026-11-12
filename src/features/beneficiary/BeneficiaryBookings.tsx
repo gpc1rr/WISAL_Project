@@ -6,6 +6,7 @@ import { Booking, BookingStatus } from '@/types';
 import { bookingRepository } from '@/data/repositories/bookingRepository';
 import { BookingCard } from '@/components/shared/BookingCard';
 import { RatingModal } from '@/features/ratings/RatingModal';
+import { ChatModal } from '@/features/chat/ChatModal';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/hooks/useToast';
@@ -17,6 +18,7 @@ export const BeneficiaryBookings: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [selectedBookingForRating, setSelectedBookingForRating] = useState<Booking | null>(null);
+  const [selectedBookingForChat, setSelectedBookingForChat] = useState<Booking | null>(null);
 
   const fetchBookings = async () => {
     if (!user) return;
@@ -88,6 +90,7 @@ export const BeneficiaryBookings: React.FC = () => {
               viewMode="beneficiary"
               onCancel={handleCancelBooking}
               onRate={bk => setSelectedBookingForRating(bk)}
+              onChat={bk => setSelectedBookingForChat(bk)}
             />
           ))}
         </div>
@@ -107,6 +110,14 @@ export const BeneficiaryBookings: React.FC = () => {
         onClose={() => setSelectedBookingForRating(null)}
         booking={selectedBookingForRating}
         onSuccess={fetchBookings}
+      />
+
+      {/* Chat Modal */}
+      <ChatModal
+        isOpen={!!selectedBookingForChat}
+        onClose={() => setSelectedBookingForChat(null)}
+        booking={selectedBookingForChat}
+        viewMode="beneficiary"
       />
     </DashboardLayout>
   );

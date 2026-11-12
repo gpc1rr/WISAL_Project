@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { StatusBadge } from './StatusBadge';
 import { formatDateArabic, formatCurrency } from '@/utils/formatters';
-import { Calendar, Clock, MapPin, Phone, User as UserIcon, Star, Check, X, ShieldAlert } from 'lucide-react';
+import { Calendar, Clock, MapPin, Phone, User as UserIcon, Star, Check, X, ShieldAlert, MessageCircle } from 'lucide-react';
 
 export interface BookingCardProps {
   booking: Booking;
@@ -13,6 +13,7 @@ export interface BookingCardProps {
   onRate?: (booking: Booking) => void;
   onConfirm?: (booking: Booking) => void;
   onComplete?: (booking: Booking) => void;
+  onChat?: (booking: Booking) => void;
 }
 
 export const BookingCard: React.FC<BookingCardProps> = ({
@@ -22,6 +23,7 @@ export const BookingCard: React.FC<BookingCardProps> = ({
   onRate,
   onConfirm,
   onComplete,
+  onChat,
 }) => {
   return (
     <Card className="border-[#E3E8E5] transition-all duration-200">
@@ -102,6 +104,18 @@ export const BookingCard: React.FC<BookingCardProps> = ({
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            {/* Chat (both roles) */}
+            {onChat && booking.status !== 'cancelled' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onChat(booking)}
+                rightIcon={<MessageCircle className="w-3.5 h-3.5" />}
+              >
+                المحادثة
+              </Button>
+            )}
+
             {/* Beneficiary Actions */}
             {viewMode === 'beneficiary' && (
               <>

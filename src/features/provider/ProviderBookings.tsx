@@ -6,6 +6,7 @@ import { Booking, BookingStatus } from '@/types';
 import { bookingRepository } from '@/data/repositories/bookingRepository';
 import { BookingCard } from '@/components/shared/BookingCard';
 import { EmptyState } from '@/components/shared/EmptyState';
+import { ChatModal } from '@/features/chat/ChatModal';
 import { useToast } from '@/hooks/useToast';
 import { CalendarCheck } from 'lucide-react';
 
@@ -17,6 +18,7 @@ export const ProviderBookings: React.FC = () => {
 
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [filterStatus, setFilterStatus] = useState<string>(initialStatus);
+  const [selectedBookingForChat, setSelectedBookingForChat] = useState<Booking | null>(null);
 
   const fetchBookings = async () => {
     if (!providerProfile) return;
@@ -106,6 +108,7 @@ export const ProviderBookings: React.FC = () => {
               onConfirm={handleConfirm}
               onComplete={handleComplete}
               onCancel={handleCancel}
+              onChat={bk => setSelectedBookingForChat(bk)}
             />
           ))}
         </div>
@@ -116,6 +119,14 @@ export const ProviderBookings: React.FC = () => {
           description="ستظهر طلبات الزوار الجدد هنا بمجرد اختيارهم لخدماتك المنشورة."
         />
       )}
+
+      {/* Chat Modal */}
+      <ChatModal
+        isOpen={!!selectedBookingForChat}
+        onClose={() => setSelectedBookingForChat(null)}
+        booking={selectedBookingForChat}
+        viewMode="provider"
+      />
     </DashboardLayout>
   );
 };
