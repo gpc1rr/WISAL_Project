@@ -220,6 +220,7 @@ try {
      * Health API
      */
     require dirname(__DIR__) . '/src/MessageRoutes.php';
+    require dirname(__DIR__) . '/src/ContactRoutes.php';
 
     if ($path === '/api/health') {
         if ($method !== 'GET') {

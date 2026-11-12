@@ -32,6 +32,14 @@ final class Messages
         ]);
     }
 
+    /** نخلي أوقات الرسائل بتوقيت مكة بدل توقيت السيرفر (فرنسا) */
+    private static function connect(): PDO
+    {
+        $db = Database::connect();
+        $db->exec("SET time_zone = '+03:00'");
+        return $db;
+    }
+
     private static function currentUserId(): int
     {
         Auth::start();
@@ -141,7 +149,7 @@ final class Messages
     public static function index(int $bookingId): never
     {
         $userId = self::currentUserId();
-        $db = Database::connect();
+        $db = self::connect();
         $booking = self::bookingFor($db, $bookingId, $userId);
 
         $afterId = filter_var(
@@ -171,7 +179,7 @@ final class Messages
     {
         $userId = self::currentUserId();
         $data = Auth::body();
-        $db = Database::connect();
+        $db = self::connect();
         $booking = self::bookingFor($db, $bookingId, $userId);
 
         if (!self::canSend($booking)) {
