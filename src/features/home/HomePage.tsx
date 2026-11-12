@@ -19,17 +19,29 @@ export const HomePage: React.FC = () => {
   const [selectedServiceForBooking, setSelectedServiceForBooking] = useState<Service | null>(null);
   const [activeFaq, setActiveFaq] = useState<number | null>(0);
 
+  const [heroService, setHeroService] = useState<Service | null>(null);
+
   useEffect(() => {
     serviceRepository.getAll().then(services => {
       setFeaturedServices(services.slice(0, 3));
+
+      // بطاقة الواجهة: الخدمة الأعلى تقييماً (ثم الأكثر تقييمات، ثم الأقدم)
+      const best = [...services].sort(
+        (a, b) =>
+          b.rating - a.rating ||
+          b.reviewsCount - a.reviewsCount ||
+          Number(a.id) - Number(b.id)
+      )[0];
+      setHeroService(best || null);
     });
   }, []);
 
-  // بطاقة الواجهة: أول خدمة حقيقية من قاعدة البيانات
-  const hero = featuredServices[0];
-  const heroImage =
-    hero?.image ||
+  // بطاقة الواجهة: خدمة حقيقية من قاعدة البيانات
+  const hero = heroService;
+  const MAKKAH_PHOTO =
     'https://images.unsplash.com/photo-1565552645632-d725f8bfc19a?w=800&auto=format&fit=crop&q=80';
+  const heroImage =
+    hero?.image && !hero.image.startsWith('data:') ? hero.image : MAKKAH_PHOTO;
 
   const stats = [
     { label: 'زائر ومعتمر مخدوم', value: '+14,500', icon: Users },

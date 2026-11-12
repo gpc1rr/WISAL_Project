@@ -126,6 +126,23 @@ const DEFAULT_IMAGE =
   `);
 
 /**
+ * صورة افتراضية لكل تصنيف (نفس صور بيانات المشروع)،
+ * تُستخدم إذا الخدمة ما لها صورة في قاعدة البيانات.
+ */
+const CATEGORY_IMAGES: Record<ServiceCategory, string> = {
+  escort_guidance:
+    'https://images.unsplash.com/photo-1565552645632-d725f8bfc19a?w=800&auto=format&fit=crop&q=80',
+  elderly_assistance:
+    'https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?w=800&auto=format&fit=crop&q=80',
+  translation:
+    'https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?w=800&auto=format&fit=crop&q=80',
+  mobility_support:
+    'https://images.unsplash.com/photo-1519817650390-64a93db51149?w=800&auto=format&fit=crop&q=80',
+  support_care:
+    'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&auto=format&fit=crop&q=80',
+};
+
+/**
  * Convert a database-backed service into the existing
  * frontend Service model.
  */
@@ -137,6 +154,10 @@ export function mapApiService(api: ApiService): Service {
     Array.isArray(value)
       ? value.map(v => String(v).trim()).filter(Boolean)
       : [];
+
+  const category = mapServiceCategory(
+    text(api.categoryKey) || (api.serviceType ?? '')
+  );
 
   return {
     id: String(api.id),
@@ -157,9 +178,7 @@ export function mapApiService(api: ApiService): Service {
     description: api.description ?? '',
 
     // نستخدم تصنيف الخدمة من القاعدة إذا موجود، وإلا نستنتجه من نوع الخدمة
-    category: mapServiceCategory(
-      text(api.categoryKey) || (api.serviceType ?? '')
-    ),
+    category,
 
     price: Number(api.price),
     priceUnit: text(api.priceUnit) || 'ريال',
@@ -171,7 +190,7 @@ export function mapApiService(api: ApiService): Service {
     rating: Number(api.averageRating ?? 0),
     reviewsCount: Number(api.ratingsCount ?? 0),
 
-    image: text(api.imageUrl) || DEFAULT_IMAGE,
+    image: text(api.imageUrl) || CATEGORY_IMAGES[category] || DEFAULT_IMAGE,
     features: list(api.features),
 
     isActive: api.isActive === undefined ? true : Boolean(api.isActive),
