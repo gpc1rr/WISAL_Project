@@ -44,6 +44,12 @@ export interface Service {
   providerName: string;
   providerRating: number;
   providerAvatar?: string;
+  // تفاصيل مقدم الخدمة (تجي من الخادم مع الخدمة)
+  providerBio?: string;
+  providerVerified?: boolean;
+  providerExperienceYears?: number;
+  providerLanguages?: string[];
+  providerServiceType?: string;
   title: string;
   description: string;
   category: ServiceCategory;

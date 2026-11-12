@@ -39,10 +39,33 @@ export const ServiceDetailPage: React.FC = () => {
     serviceRepository.getById(id).then(found => {
       setService(found);
       if (found) {
-        setIsFav(serviceRepository.isFavorite(found.id));
+        serviceRepository.loadFavorites(true).then(() => {
+          setIsFav(serviceRepository.isFavorite(found.id));
+        });
         // Provider info
         const provs = storage.getProviders();
-        const p = provs.find(pr => pr.id === found.providerId) || null;
+        // في الوضع الحقيقي: بيانات مقدم الخدمة تجي من الخادم مع الخدمة نفسها
+        const p =
+          provs.find(pr => pr.id === found.providerId) ||
+          (found.providerName
+            ? {
+                id: found.providerId,
+                userId: '',
+                fullName: found.providerName,
+                phone: '',
+                age: 0,
+                serviceType: found.providerServiceType || '',
+                experienceYears: found.providerExperienceYears ?? 0,
+                languages: found.providerLanguages || [],
+                bio: found.providerBio || '',
+                rating: found.providerRating || 0,
+                reviewsCount: 0,
+                isVerified: !!found.providerVerified,
+                avatar:
+                  found.providerAvatar ||
+                  'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+              }
+            : null);
         setProvider(p);
 
         // Reviews
@@ -85,13 +108,17 @@ export const ServiceDetailPage: React.FC = () => {
 
   const categoryConfig = CATEGORIES[service.category];
 
-  const handleFavoriteToggle = () => {
-    const newState = serviceRepository.toggleFavorite(service.id);
-    setIsFav(newState);
-    if (newState) {
-      toast('تمت إضافة الخدمة إلى المفضلة', 'success');
-    } else {
-      toast('تمت إزالة الخدمة من المفضلة', 'info');
+  const handleFavoriteToggle = async () => {
+    try {
+      const newState = await serviceRepository.toggleFavorite(service.id);
+      setIsFav(newState);
+      if (newState) {
+        toast('تمت إضافة الخدمة إلى المفضلة', 'success');
+      } else {
+        toast('تمت إزالة الخدمة من المفضلة', 'info');
+      }
+    } catch (err: any) {
+      toast(err.message || 'تعذر تحديث المفضلة', 'error');
     }
   };
 

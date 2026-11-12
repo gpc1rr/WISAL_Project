@@ -15,8 +15,8 @@ import {
  * Real mode: PHP REST API + MariaDB
  * Demo mode: Browser localStorage
  *
- * Favorites remain local because the current
- * database schema does not include a favorites table.
+ * Favorites: real mode uses /api/favorites (database),
+ * demo mode uses localStorage.
  */
 
 const isRealMode = import.meta.env.VITE_AUTH_MODE !== 'demo';
@@ -26,6 +26,10 @@ const API_URL = (
 ).replace(/\/$/, '');
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
+
+// نسخة مؤقتة من المفضلة (الوضع الحقيقي) عشان ما نطلبها من الخادم لكل بطاقة خدمة
+let favoritesCache: Set<string> | null = null;
+let favoritesPromise: Promise<string[]> | null = null;
 
 interface ApiResponse<T> {
   success: boolean;
@@ -436,12 +440,53 @@ export const serviceRepository = {
     );
   },
 
+  /* ---------------------------------------------------------------- */
+  /* المفضلة                                                          */
+  /* الوضع الحقيقي: من قاعدة البيانات عبر /api/favorites               */
+  /* الوضع التجريبي: من ذاكرة المتصفح                                   */
+  /* ---------------------------------------------------------------- */
+
+  /**
+   * تحميل أرقام الخدمات المفضلة من الخادم (مرة وحدة وتنحفظ مؤقتاً).
+   * إذا المستخدم مو مستفيد أو مو مسجل دخول، ترجع قائمة فاضية.
+   */
+  loadFavorites: async (force = false): Promise<string[]> => {
+    if (!isRealMode) {
+      return storage.getFavorites();
+    }
+
+    if (force) {
+      favoritesPromise = null;
+    }
+
+    if (!favoritesPromise) {
+      favoritesPromise = apiRequest<string[]>('/api/favorites')
+        .then(ids => {
+          favoritesCache = new Set(ids.map(String));
+          return [...favoritesCache];
+        })
+        .catch(() => {
+          favoritesCache = new Set();
+          return [];
+        });
+    }
+
+    return favoritesPromise;
+  },
+
+  /** نمسح النسخة المؤقتة (عند تسجيل الدخول أو الخروج) */
+  clearFavoritesCache: (): void => {
+    favoritesCache = null;
+    favoritesPromise = null;
+  },
+
   /**
    * Return favorite service IDs.
-   *
-   * Favorites are stored locally.
    */
   getFavorites: (): string[] => {
+    if (isRealMode) {
+      return favoritesCache ? [...favoritesCache] : [];
+    }
     return storage.getFavorites();
   },
 
@@ -451,6 +496,10 @@ export const serviceRepository = {
   isFavorite: (
     serviceId: string
   ): boolean => {
+    if (isRealMode) {
+      return favoritesCache?.has(String(serviceId)) ?? false;
+    }
+
     return storage
       .getFavorites()
       .includes(serviceId);
@@ -458,10 +507,30 @@ export const serviceRepository = {
 
   /**
    * Add or remove a favorite.
+   * يرجّع الحالة الجديدة (true = صارت مفضلة).
+   * في الوضع الحقيقي يرمي خطأ برسالة واضحة لو فشل (مثلاً: غير مسجل دخول).
    */
-  toggleFavorite: (
+  toggleFavorite: async (
     serviceId: string
-  ): boolean => {
+  ): Promise<boolean> => {
+    if (isRealMode) {
+      await serviceRepository.loadFavorites();
+      const id = String(serviceId);
+      const exists = favoritesCache?.has(id) ?? false;
+
+      if (exists) {
+        await apiRequest(`/api/favorites/${encodeURIComponent(id)}`, 'DELETE');
+        favoritesCache?.delete(id);
+      } else {
+        await apiRequest('/api/favorites', 'POST', { serviceId: Number(id) });
+        if (!favoritesCache) favoritesCache = new Set();
+        favoritesCache.add(id);
+      }
+
+      favoritesPromise = Promise.resolve([...(favoritesCache ?? [])]);
+      return !exists;
+    }
+
     const favorites =
       storage.getFavorites();
 
@@ -481,18 +550,18 @@ export const serviceRepository = {
 
   /**
    * Get the complete service records
-   * corresponding to locally saved favorites.
+   * corresponding to the saved favorites.
    */
   getFavoriteServices: async (): Promise<Service[]> => {
     const favoriteIds =
-      storage.getFavorites();
+      await serviceRepository.loadFavorites(true);
 
     const services =
       await serviceRepository.getAll();
 
     return services.filter(
       service =>
-        favoriteIds.includes(service.id)
+        favoriteIds.includes(String(service.id))
     );
   },
 };

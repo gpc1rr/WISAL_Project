@@ -1,4 +1,4 @@
-import { Booking, BookingStatus } from '@/types';
+import { Booking, BookingStatus, RatingReview } from '@/types';
 import { storage } from '../mocks/storage';
 import { apiRequest } from '../api/client';
 
@@ -80,10 +80,20 @@ function toBookingDateTime(date: string, timeSlot: string): string {
 /* ------------------------------------------------------------------ */
 
 const realBookingRepository = {
-  // الخادم يعرف المستخدم من الجلسة، ويرجّع حجوزاته هو فقط
+  // الخادم يعرف المستخدم من الجلسة، ويرجّع حجوزاته هو فقط.
+  // ونجيب تقييماته من القاعدة عشان نعرف أي حجز قيّمه من قبل.
   getByBeneficiaryId: async (_beneficiaryId: string): Promise<Booking[]> => {
-    const data = await apiRequest<Booking[]>('/api/bookings');
-    return data.map(withRated);
+    const [data, myRatings] = await Promise.all([
+      apiRequest<Booking[]>('/api/bookings'),
+      apiRequest<RatingReview[]>('/api/ratings').catch(() => [] as RatingReview[]),
+    ]);
+
+    const ratedIds = new Set(myRatings.map(r => String(r.bookingId)));
+
+    return data.map(b => {
+      const booking = withRated(b);
+      return ratedIds.has(String(b.id)) ? { ...booking, rated: true } : booking;
+    });
   },
 
   getByProviderId: async (_providerId: string): Promise<Booking[]> => {

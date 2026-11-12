@@ -17,6 +17,24 @@ export interface ApiService {
   languages: string[];
   averageRating: number;
   ratingsCount: number;
+
+  // حقول إضافية يرجعها الخادم الحالي (اختيارية لو ما كانت موجودة)
+  priceUnit?: string;
+  duration?: string;
+  location?: string;
+  imageUrl?: string;
+  categoryKey?: string;
+  categoryName?: string;
+  isActive?: boolean;
+  isFeatured?: boolean;
+  features?: string[];
+  meetingPoints?: string[];
+  createdAt?: string;
+  providerAvatar?: string;
+  providerBio?: string;
+  providerVerified?: boolean;
+  providerRating?: number;
+  providerRatingsCount?: number;
 }
 
 const VALID_CATEGORIES: ServiceCategory[] = [
@@ -112,42 +130,53 @@ const DEFAULT_IMAGE =
  * frontend Service model.
  */
 export function mapApiService(api: ApiService): Service {
+  const text = (value: unknown): string =>
+    typeof value === 'string' ? value.trim() : '';
+
+  const list = (value: unknown): string[] =>
+    Array.isArray(value)
+      ? value.map(v => String(v).trim()).filter(Boolean)
+      : [];
+
   return {
     id: String(api.id),
 
     providerId: String(api.providerId),
     providerName: api.providerName,
 
-    // No separate provider rating in the current API.
-    providerRating: 0,
-    providerAvatar: undefined,
+    providerRating: Number(api.providerRating ?? 0),
+    providerAvatar: text(api.providerAvatar) || undefined,
+    providerBio: text(api.providerBio) || undefined,
+    providerVerified: Boolean(api.providerVerified),
+    providerExperienceYears:
+      api.experienceYears === undefined ? undefined : Number(api.experienceYears),
+    providerLanguages: list(api.languages),
+    providerServiceType: text(api.serviceType) || undefined,
 
     title: api.serviceName,
     description: api.description ?? '',
 
+    // نستخدم تصنيف الخدمة من القاعدة إذا موجود، وإلا نستنتجه من نوع الخدمة
     category: mapServiceCategory(
-      api.serviceType ?? ''
+      text(api.categoryKey) || (api.serviceType ?? '')
     ),
 
     price: Number(api.price),
-    priceUnit: 'ريال',
+    priceUnit: text(api.priceUnit) || 'ريال',
 
-    // These fields are not stored in the current SQL schema.
-    duration: 'غير محددة',
-    location: 'تُحدد عند الحجز',
-    meetingPoints: [],
+    duration: text(api.duration) || 'غير محددة',
+    location: text(api.location) || 'تُحدد عند الحجز',
+    meetingPoints: list(api.meetingPoints),
 
     rating: Number(api.averageRating ?? 0),
     reviewsCount: Number(api.ratingsCount ?? 0),
 
-    image: DEFAULT_IMAGE,
-    features: [],
+    image: text(api.imageUrl) || DEFAULT_IMAGE,
+    features: list(api.features),
 
-    // Current schema does not support deactivation.
-    isActive: true,
+    isActive: api.isActive === undefined ? true : Boolean(api.isActive),
 
-    // No created_at column exists in services.
-    createdAt: '',
+    createdAt: text(api.createdAt),
   };
 }
 

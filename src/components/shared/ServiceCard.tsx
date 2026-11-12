@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Service } from '@/types';
 import { Card } from '@/components/ui/Card';
@@ -20,18 +20,39 @@ export interface ServiceCardProps {
 
 export const ServiceCard: React.FC<ServiceCardProps> = ({ service, onBookClick, className }) => {
   const [isFav, setIsFav] = useState(() => serviceRepository.isFavorite(service.id));
+  const [isFavLoading, setIsFavLoading] = useState(false);
   const { toast } = useToast();
   const categoryConfig = CATEGORIES[service.category];
 
-  const handleFavoriteToggle = (e: React.MouseEvent) => {
+  // نجيب المفضلة من الخادم (طلب واحد لكل البطاقات)
+  useEffect(() => {
+    let active = true;
+    serviceRepository.loadFavorites().then(() => {
+      if (active) setIsFav(serviceRepository.isFavorite(service.id));
+    });
+    return () => {
+      active = false;
+    };
+  }, [service.id]);
+
+  const handleFavoriteToggle = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const newState = serviceRepository.toggleFavorite(service.id);
-    setIsFav(newState);
-    if (newState) {
-      toast('تمت إضافة الخدمة إلى المفضلة', 'success');
-    } else {
-      toast('تمت إزالة الخدمة من المفضلة', 'info');
+    if (isFavLoading) return;
+
+    setIsFavLoading(true);
+    try {
+      const newState = await serviceRepository.toggleFavorite(service.id);
+      setIsFav(newState);
+      if (newState) {
+        toast('تمت إضافة الخدمة إلى المفضلة', 'success');
+      } else {
+        toast('تمت إزالة الخدمة من المفضلة', 'info');
+      }
+    } catch (err: any) {
+      toast(err.message || 'تعذر تحديث المفضلة', 'error');
+    } finally {
+      setIsFavLoading(false);
     }
   };
 

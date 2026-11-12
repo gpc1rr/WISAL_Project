@@ -3,6 +3,7 @@ import { User, ProviderProfile, UserRole } from '@/types';
 import { authRepository } from '@/data/repositories/authRepository';
 import { storage } from '@/data/mocks/storage';
 import { realAuthRepository } from '@/data/repositories/realAuthRepository';
+import { serviceRepository } from '@/data/repositories/serviceRepository';
 
 const realMode = import.meta.env.VITE_AUTH_MODE !== 'demo';
 
@@ -68,6 +69,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         .finally(() => setIsLoading(false));
     } else { refreshUserData(); setIsLoading(false); }
   }, []);
+
+  // لما يتغير المستخدم (دخول/خروج) نمسح المفضلة المؤقتة عشان تنجاب من جديد
+  useEffect(() => {
+    serviceRepository.clearFavoritesCache();
+  }, [user?.id]);
 
   const login = async (phone: string, pass: string): Promise<User> => {
     setIsLoading(true);

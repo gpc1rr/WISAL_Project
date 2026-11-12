@@ -25,6 +25,12 @@ export const HomePage: React.FC = () => {
     });
   }, []);
 
+  // بطاقة الواجهة: أول خدمة حقيقية من قاعدة البيانات
+  const hero = featuredServices[0];
+  const heroImage =
+    hero?.image ||
+    'https://images.unsplash.com/photo-1565552645632-d725f8bfc19a?w=800&auto=format&fit=crop&q=80';
+
   const stats = [
     { label: 'زائر ومعتمر مخدوم', value: '+14,500', icon: Users },
     { label: 'مقدم خدمة معتمد', value: '+380', icon: Award },
@@ -171,8 +177,10 @@ export const HomePage: React.FC = () => {
                         و
                       </div>
                       <div>
-                        <h2 className="text-sm font-bold text-white">بطاقة خدمة مميزة</h2>
-                        <span className="text-[11px] text-gold-300 font-medium">مرافقة معتمر خلال المناسك</span>
+                        <h2 className="text-sm font-bold text-white">خدمة مميزة</h2>
+                        <span className="text-[11px] text-gold-300 font-medium line-clamp-1">
+                          {hero?.title || 'جاري تحميل الخدمات...'}
+                        </span>
                       </div>
                     </div>
                     <Badge variant="gold" size="sm" className="bg-gold-500/20 text-gold-300 border-gold-500/30">
@@ -182,13 +190,13 @@ export const HomePage: React.FC = () => {
 
                   <div className="aspect-[16/9] rounded-2xl overflow-hidden relative shadow-inner">
                     <img
-                      src="https://images.unsplash.com/photo-1565552645632-d725f8bfc19a?w=800&auto=format&fit=crop&q=80"
-                      alt="الكعبة المشرفة"
+                      src={heroImage}
+                      alt={hero?.title || 'المسجد الحرام'}
                       className="w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                     <div className="absolute bottom-3 right-3 text-white text-xs font-semibold">
-                      مكة المكرمة — صحن المطاف وأدوار العربات
+                      {hero ? (CATEGORIES[hero.category]?.label || 'خدمة مساندة') : 'مكة المكرمة — المسجد الحرام'}
                     </div>
                   </div>
 
@@ -196,21 +204,26 @@ export const HomePage: React.FC = () => {
                   <div className="space-y-2 text-xs text-stone-200">
                     <div className="flex items-center justify-between py-1 border-b border-emerald-800/50">
                       <span className="text-stone-400">مقدم الخدمة:</span>
-                      <span className="font-bold text-gold-300">م. ريان الشريف (تقييم 4.98 ★)</span>
+                      <span className="font-bold text-gold-300">
+                        {hero ? hero.providerName : '—'}
+                        {hero && (hero.rating > 0 ? ` (تقييم ${hero.rating.toFixed(1)} ★)` : ' (جديد)')}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between py-1 border-b border-emerald-800/50">
                       <span className="text-stone-400">نقطة الالتقاء:</span>
-                      <span>ساحة باب الملك فهد</span>
+                      <span className="line-clamp-1">{hero?.meetingPoints?.[0] || hero?.location || '—'}</span>
                     </div>
                     <div className="flex items-center justify-between py-1">
                       <span className="text-stone-400">التكلفة:</span>
-                      <span className="font-bold text-white text-sm">150 ر.س / جولة</span>
+                      <span className="font-bold text-white text-sm">
+                        {hero ? `${hero.price} ${hero.priceUnit || 'ريال'}` : '—'}
+                      </span>
                     </div>
                   </div>
 
-                  <Link to="/services/srv-1" className="block w-full">
+                  <Link to={hero ? `/services/${hero.id}` : '/services'} className="block w-full">
                     <Button variant="gold" size="md" className="w-full text-charcoal-900 font-bold">
-                      عرض تفاصيل التجربة
+                      عرض تفاصيل الخدمة
                     </Button>
                   </Link>
                 </div>
