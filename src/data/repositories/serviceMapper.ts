@@ -139,7 +139,7 @@ const CATEGORY_IMAGES: Record<ServiceCategory, string> = {
   mobility_support:
     'https://images.unsplash.com/photo-1519817650390-64a93db51149?w=800&auto=format&fit=crop&q=80',
   support_care:
-    'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1565552645632-d725f8bfc19a?w=800&auto=format&fit=crop&q=80',
 };
 
 /**
