@@ -64,7 +64,7 @@ export const BeneficiaryProfile: React.FC = () => {
                 <h3 className="text-base font-bold text-charcoal-900">{user?.fullName}</h3>
                 <p className="text-xs text-charcoal-500 font-mono">{user?.phone}</p>
                 <span className="inline-block mt-1 text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
-                  حساب مستفيد تجريبي
+                  حساب مستفيد
                 </span>
               </div>
             </div>

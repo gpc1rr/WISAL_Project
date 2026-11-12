@@ -7,6 +7,22 @@ import { serviceRepository } from '@/data/repositories/serviceRepository';
 
 const realMode = import.meta.env.VITE_AUTH_MODE !== 'demo';
 
+/** نحوّل بيانات مقدم الخدمة القادمة من الخادم لشكل الواجهة (ونحافظ على النبذة والصورة لو موجودة) */
+function mapProvider(p: any): ProviderProfile | null {
+  if (!p) return null;
+  return {
+    ...p,
+    id: String(p.id),
+    userId: String(p.userId),
+    bio: p.bio ?? '',
+    rating: Number(p.rating ?? p.averageRating ?? 0),
+    reviewsCount: Number(p.reviewsCount ?? p.ratingsCount ?? 0),
+    isVerified: Boolean(p.isVerified ?? p.verified ?? false),
+    avatar: p.avatar ?? p.avatarUrl ?? '',
+    languages: Array.isArray(p.languages) ? p.languages : [],
+  };
+}
+
 interface AuthContextType {
   user: User | null;
   providerProfile: ProviderProfile | null;
@@ -63,7 +79,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       realAuthRepository.me()
         .then(session => {
           setUser({ ...session.user, id: String(session.user.id) });
-          setProviderProfile(session.provider ? { ...session.provider, id: String(session.provider.id), userId: String(session.provider.userId), bio: '', rating: 0, reviewsCount: 0, isVerified: false, avatar: '' } : null);
+          setProviderProfile(mapProvider(session.provider));
         })
         .catch(() => { setUser(null); setProviderProfile(null); })
         .finally(() => setIsLoading(false));
@@ -82,7 +98,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const session = await realAuthRepository.login(phone, pass);
         const loggedUser = { ...session.user, id: String(session.user.id) };
         setUser(loggedUser);
-        setProviderProfile(session.provider ? { ...session.provider, id: String(session.provider.id), userId: String(session.provider.userId), bio: '', rating: 0, reviewsCount: 0, isVerified: false, avatar: '' } : null);
+        setProviderProfile(mapProvider(session.provider));
         return loggedUser;
       }
       const loggedUser = await authRepository.login(phone, pass);
@@ -137,7 +153,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (realMode) {
         const session = await realAuthRepository.registerProvider(data);
         if (!session.provider) throw new Error('تعذر تحميل ملف مقدم الخدمة');
-        const res = { user: { ...session.user, id: String(session.user.id) }, provider: { ...session.provider, id: String(session.provider.id), userId: String(session.provider.userId), bio: '', rating: 0, reviewsCount: 0, isVerified: false, avatar: '' } };
+        const res = { user: { ...session.user, id: String(session.user.id) }, provider: mapProvider(session.provider) as ProviderProfile };
         setUser(res.user); setProviderProfile(res.provider); return res;
       }
       const res = await authRepository.registerProvider(data);
@@ -150,16 +166,44 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const updateUserProfile = async (data: Partial<User>): Promise<User> => {
-    if (realMode) throw new Error('تعديل الملف الشخصي عبر قاعدة البيانات غير متاح حتى المرحلة التالية');
     if (!user) throw new Error('يرجى تسجيل الدخول أولاً');
+    if (realMode) {
+      const session = await realAuthRepository.updateProfile({
+        fullName: data.fullName ?? user.fullName,
+        phone: data.phone ?? user.phone,
+        age: data.age ?? user.age,
+        nationality: data.nationality ?? user.nationality,
+        preferredLanguage: data.preferredLanguage ?? user.preferredLanguage,
+      });
+      const updated = { ...user, ...session.user, ...data, id: String(session.user.id) };
+      setUser(updated);
+      if (session.provider) setProviderProfile(mapProvider(session.provider));
+      return updated;
+    }
     const updated = await authRepository.updateUserProfile(user.id, data);
     setUser(updated);
     return updated;
   };
 
   const updateProviderProfile = async (data: Partial<ProviderProfile>): Promise<ProviderProfile> => {
-    if (realMode) throw new Error('تعديل الملف المهني عبر قاعدة البيانات غير متاح حتى المرحلة التالية');
     if (!providerProfile) throw new Error('الملف المهني غير موجود');
+    if (realMode) {
+      const merged = { ...providerProfile, ...data };
+      const session = await realAuthRepository.updateProfile({
+        fullName: merged.fullName,
+        phone: merged.phone,
+        age: merged.age,
+        serviceType: merged.serviceType,
+        experienceYears: merged.experienceYears,
+        languages: merged.languages,
+        bio: merged.bio,
+        nationality: user?.nationality,
+      });
+      if (session.user) setUser(prev => ({ ...(prev as User), ...session.user, id: String(session.user.id) }));
+      const updated = { ...(mapProvider(session.provider) || {}), ...merged } as ProviderProfile;
+      setProviderProfile(updated);
+      return updated;
+    }
     const updated = await authRepository.updateProviderProfile(providerProfile.id, data);
     setProviderProfile(updated);
     return updated;
