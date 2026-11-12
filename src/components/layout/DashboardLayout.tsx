@@ -17,6 +17,9 @@ export interface DashboardLayoutProps {
   action?: React.ReactNode;
 }
 
+// أزرار الحساب التجريبي تظهر فقط في الوضع التجريبي (demo)
+const isDemo = import.meta.env.VITE_AUTH_MODE === 'demo';
+
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   children,
   role,
@@ -57,13 +60,16 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       <div className="bg-[#073D2D] text-white text-xs py-2 px-4 border-b border-gold-500/30 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Badge variant="gold" size="sm" className="bg-gold-500 text-charcoal-900 font-bold border-none">
-            {role === 'provider' ? 'بوابة مقدم الخدمة (تجريبي)' : 'بوابة المستفيد (تجريبي)'}
+            {role === 'provider' ? 'بوابة مقدم الخدمة' : 'بوابة المستفيد'}
+            {isDemo && ' (تجريبي)'}
           </Badge>
           <span className="hidden sm:inline text-stone-200 text-xs">
-            أنت الآن تتصفح الحساب التجريبي لـ: <strong>{user?.fullName || 'ضيف'}</strong>
+            {isDemo ? 'أنت الآن تتصفح الحساب التجريبي لـ: ' : 'مرحباً، '}
+            <strong>{user?.fullName || 'ضيف'}</strong>
           </span>
         </div>
 
+        {isDemo && (
         <div className="flex items-center gap-3">
           <button
             onClick={() => switchDemoRole(role === 'provider' ? 'beneficiary' : 'provider')}
@@ -81,6 +87,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             <span className="hidden sm:inline">إعادة ضبط البيانات</span>
           </button>
         </div>
+        )}
       </div>
 
       <div className="flex-1 flex max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 gap-8">

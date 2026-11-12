@@ -114,7 +114,7 @@ export const LoginPage: React.FC = () => {
 
             <div>
               <Input
-                label="كلمة المرور التجريبية"
+                label={isDemo ? "كلمة المرور التجريبية" : "كلمة المرور"}
                 type={showPassword ? 'text' : 'password'}
                 required
                 value={password}

@@ -8,6 +8,9 @@ import {
   LogOut, RefreshCw, ChevronDown, Sparkles
 } from 'lucide-react';
 
+// أزرار الحساب التجريبي تظهر فقط في الوضع التجريبي (demo)
+const isDemo = import.meta.env.VITE_AUTH_MODE === 'demo';
+
 export const Navbar: React.FC = () => {
   const { user, isProvider, isAuthenticated, logout, switchDemoRole, resetAllDemoData } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -31,7 +34,8 @@ export const Navbar: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E3E8E5] shadow-xs">
-      {/* Top Demo Bar */}
+      {/* Top Demo Bar (demo mode only) */}
+      {isDemo && (
       <div className="bg-[#073D2D] text-white text-xs py-1.5 px-4 text-center flex items-center justify-between border-b border-gold-500/30">
         <div className="flex items-center gap-2 mx-auto sm:mx-0">
           <span className="inline-block w-2 h-2 rounded-full bg-gold-400 animate-pulse" />
@@ -70,6 +74,7 @@ export const Navbar: React.FC = () => {
           </button>
         </div>
       </div>
+      )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
@@ -263,7 +268,8 @@ export const Navbar: React.FC = () => {
               </div>
             )}
 
-            {/* Quick Demo Switchers on Mobile */}
+            {/* Quick Demo Switchers on Mobile (demo mode only) */}
+            {isDemo && (
             <div className="mt-4 pt-3 border-t border-stone-200 text-xs">
               <p className="text-charcoal-500 mb-2 font-medium">التبديل السريع للحساب التجريبي:</p>
               <div className="flex gap-2">
@@ -287,6 +293,7 @@ export const Navbar: React.FC = () => {
                 </button>
               </div>
             </div>
+            )}
           </div>
         </div>
       )}

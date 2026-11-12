@@ -200,7 +200,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
           <div className="bg-amber-50/80 p-3 rounded-xl border border-amber-200/60 text-xs text-amber-900 flex items-start gap-2">
             <Clock className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
             <p>
-              <strong>تنويه النموذج التجريبي:</strong> الفترات الزمنية المعروضة هي فترات مقترحة وفق أوقات الطواف المفضلة بالمسجد الحرام للتجربة.
+              <strong>ملاحظة:</strong> الفترات الزمنية المعروضة مقترحة وفق أوقات الطواف المفضلة بالمسجد الحرام، ويمكنك تنسيق الموعد بدقة مع مقدم الخدمة عبر المحادثة بعد الحجز.
             </p>
           </div>
 
