@@ -161,7 +161,7 @@ final class Contact
         }
 
         try {
-            return @mail($to, $encodedSubject, $body, implode("\r\n", $headers));
+              return @mail($to, $encodedSubject, $body, implode("\r\n", $headers), '-f' . $from);
         } catch (\Throwable $e) {
             error_log('WISAL contact mail failed: ' . $e->getMessage());
             return false;
